@@ -31,12 +31,18 @@ class HomeController extends Controller
         $waktuUpdateEmasTerakhir = strtotime($akun->waktu_update_emas);
         //per 10 detik, bertambah 2 emas
         $selisihWaktu = time() - $waktuUpdateEmasTerakhir;
-        $tambahEmas = ($selisihWaktu/10)*2;
+        $tambahEmas = ($selisihWaktu / 10) * 2;
         $akun->emas += $tambahEmas;
         $akun->waktu_update_emas = date('Y-m-d H:i:s');
         $akun->save();
 
-        $musuhs = Akun::getMusuhEligible();
+        $musuhs = Akun::where('id', '!=', $akun->id)
+            ->where('waktu_bangun_barak', '>', 0)
+            ->where('jumlah_pasukan_tersedia', '>', 0)
+            ->where('emas', '>', 50)
+            ->inRandomOrder()
+            ->limit(20)
+            ->get();
 
         return view('home', ['akun' => $akun, 'musuhs' => $musuhs]);
     }
